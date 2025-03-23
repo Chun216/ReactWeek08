@@ -1,0 +1,27 @@
+@import "../assets/variables";
+@import "../assets/variables-dark"; 
+@import "bootstrap/scss/bootstrap";
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+@import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap');
+
+
+$utilities: map-merge(
+   $utilities,(
+     "font-size":map-merge(
+     map-get($utilities, "font-size"),
+     ( responsive: true ),
+     ),
+   )
+);
+
+@import "bootstrap/scss/utilities/api";
+
+*,*:before,*:after{ box-sizing: border-box;}
+body {
+  font-family: "Zen Maru Gothic", serif;
+}
+img {
+  max-width: 100%;
+}
+
+
