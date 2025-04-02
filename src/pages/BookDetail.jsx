@@ -19,8 +19,8 @@ const categoryMap = {
 function BookDetail () {
   const [product, setProduct] = useState({});
   const [qtySelect, setQtySelect] = useState(1);
-  // 跟在按鈕後面的loading
-  const [ isLoading, setIsLoading ] = useState(false);
+  // 跟在按鈕後面的loading，要分開來寫，不然會同時作用
+  const [ isLoading, setIsLoading ] = useState({addToCart: false, buyNow: false});
   // 加入收藏的狀態變化
   const [ favorites, setFavorites ] = useState([]);  
   // id可以藉由useParams取得
@@ -35,13 +35,16 @@ function BookDetail () {
       }
     };
     getProductDetail();      
-  }, [])
+  }, [id])
   
 // 加入購物車
 const addCartItem = async(product_id, qty) => {
-  setIsLoading(true);
+  setIsLoading((prev) => ({
+    ...prev,
+    addToCart: true
+  }));
   try {
-    const res = await axios.post(`${BASE_URL}/v2/api/${API_PATH}/cart`, {
+    await axios.post(`${BASE_URL}/v2/api/${API_PATH}/cart`, {
       data: {
         // 這裡不用寫product_id: product_id，直接寫以下的也是一樣意思
         product_id,
@@ -53,7 +56,10 @@ const addCartItem = async(product_id, qty) => {
   } catch (error) {
     alert(error.response?.data?.message || "加入購物車失敗")
   } finally {
-    setIsLoading(false);
+    setIsLoading((prev) => ({
+      ...prev,
+      addToCart: false
+    }));
   }
 }
 
@@ -69,29 +75,28 @@ const isFavorite = ((product_id) => favorites.includes(product_id));
 // 在產品詳情頁面直接購買並跳轉至購物車與結帳頁
 const navigate = useNavigate();
 
-// const handleBuyNow = () => {
-//   // 獲取當前購物車內容（若無則初始化為空）
-//   const cartProduct = JSON.parse(localStorage.getItem('cart')) || [];
-//   console.log(cartProduct)
-
-//   // 檢查是否已經有相同商品
-//   const existingProductIndex = cartProduct.findIndex(item => item.id === product.id);
-
-//   if (existingProductIndex !== -1) {
-//     // 如果已經有相同商品，數量+1）
-//     cartProduct[existingProductIndex].quantity += 1;
-//   } else {
-//     // 如果沒有相同商品，將新商品加入購物車
-//     cartProduct.push({ ...product, quantity: 1 });
-//   }
-
-//   // 更新購物車到 localStorage
-//   localStorage.setItem('cart', JSON.stringify(cartProduct));
-//   console.log(JSON.parse(localStorage.getItem('cart')));
-
-//   // 跳轉到購物車頁面
-//   navigate('/cart');
-// };
+const handleBuyNow = async(product_id, qty) => {
+  setIsLoading((prev) => ({
+    ...prev,
+    buyNow: true
+  }));
+  try {
+    await axios.post(`${BASE_URL}/v2/api/${API_PATH}/cart`, {
+      data: {
+        product_id,
+        qty: Number(qty)
+      }
+    })
+    navigate('/cart');
+  } catch (error) {
+    alert(error.response?.data?.message || "直接購買失敗")
+  } finally {
+    setIsLoading((prev) => ({
+      ...prev,
+      buyNow: false
+    }));
+  }
+};
 
   
 
@@ -138,8 +143,8 @@ const navigate = useNavigate();
               onClick={(() => addCartItem(product.id, Number(qtySelect)))} 
               type="button" 
               className="btn btn-primary-200 d-flex align-items-center text-light"
-              disabled={isLoading}><i className="bi bi-backpack2 pe-1"></i>
-              {isLoading ? (<RingLoader color="#000" size={15} />) : '加入書袋'}
+              disabled={isLoading.addToCart}><i className="bi bi-backpack2 pe-1"></i>
+              {isLoading.addToCart ? (<RingLoader color="#000" size={15} />) : '加入書袋'}
             </button>
           </div>
           <div className="pt-4">
@@ -153,9 +158,10 @@ const navigate = useNavigate();
             </button>
             <button type="button"
               className="btn btn-outline-danger rounded"
-              // onClick={handleBuyNow}
-              >
-              <i class="bi bi-bag-check-fill pe-1"></i>直接購買
+              onClick={() => handleBuyNow(product.id, 1)}
+              disabled={isLoading.buyNow}
+              ><i class="bi bi-bag-check-fill pe-1"></i>
+              {isLoading.buyNow ? (<RingLoader color="#000" size={15} />) : '直接購買'}
             </button>
           </div>
         </div>

@@ -1,7 +1,10 @@
-import { Outlet, NavLink, useLocation } from "react-router";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router";
 import logo from '../assets/logo.png';
 import '../assets/FrontLayout.scss';
 import { Link } from "react-router";
+import { useState } from "react";
+
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 function FrontLayout () {
     const routes = [
@@ -12,6 +15,26 @@ function FrontLayout () {
     ];
 
     const location = useLocation();
+
+    const navigate = useNavigate();
+
+    const handleAdminAccess = async() => {
+      try {
+        const token = document.cookie.replace(/(?:(?:^|.*;\\s*)beetoken\\s*=\\s*([^;]*).*$)|^.*$/,"$1",);
+        axios.defaults.headers.common.Authorization = token;
+        await axios.post(`${BASE_URL}/api/user/check`);
+      } catch (error) {
+        alert(error.response?.data?.message || "管理者驗證失敗")
+        navigate('/adminlogin')
+      }
+    }
+
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleToggle = () => {
+      setIsOpen(!isOpen);
+    }
+
 
     return(<>
       <nav className="navbar border-body" data-bs-theme="dark" style={{backgroundColor:'#00000'}}>
@@ -51,7 +74,7 @@ function FrontLayout () {
             <button className="navbar-toggler btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
               <span className="navbar-toggler-icon" style={{fontSize: '24px'}}><i className="bi bi-list text-primary-200"></i></span>
             </button>
-            <div className="offcanvas offcanvas-end bg-primary-200" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div className="offcanvas offcanvas-end bg-primary-200" tabIndex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
               <div className="offcanvas-header">
                 <h5 className="offcanvas-title" id="offcanvasNavbarLabel">筆筆書櫃</h5>
                 <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -65,10 +88,14 @@ function FrontLayout () {
                     <Link className="nav-link" to="/bookslist">全部繪本</Link>
                   </li>
                   <li className="nav-item dropdown">
-                    <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleToggle();
+                      }}>
                       主題分類
                     </a>
-                    <ul className="dropdown-menu bg-primary-300">
+                    <ul className={`dropdown-menu bg-primary-300 ${isOpen ? 'show' : ''}`}>
                       <li><Link className="dropdown-item" to='/bookslist/daily'>日常生活</Link></li>
                       <li><Link className="dropdown-item" to='/bookslist/problemsolving'>解決問題</Link></li>
                       <li><Link className="dropdown-item" to='/bookslist/knowmyself'>認識自己</Link></li>
@@ -95,9 +122,16 @@ function FrontLayout () {
         <div className="container pt-5">
           <div className="row">
             {/* <!-- About Us Section --> */}
-            <div className="col-md-3">
+            <div className="col-md-6 d-flex flex-column">
               <h6 className="text-danger-100">關於我們</h6>
               <span>我們是專注於提供優質繪本的電商平台，致力於讓每個家庭都能在閱讀中發現快樂。</span>
+              <div className="mt-auto">
+                <button type="button" 
+                  className="btn btn-sm btn-danger-100 text-light"
+                  onClick={() => handleAdminAccess()}
+                  >
+                  後台管理</button>
+              </div>
             </div>
             
             {/* <!-- Quick Links Section --> */}
@@ -110,17 +144,6 @@ function FrontLayout () {
                 <li><Link to="https://www.instagram.com/beemandarin_story/" className="link-light">聯絡我們</Link></li>
                 <li><a href="#" className="text-white">隱私政策</a></li>
               </ul>
-            </div>
-      
-            {/* <!-- Newsletter Section --> */}
-            <div className="col-md-3 mt-md-0 mt-4">
-              <h6 className="text-danger-100">訂閱電子報</h6>
-              <form>
-                <div className="input-group">
-                  <input type="email" className="form-control" placeholder="輸入您的電子郵件" />
-                  <button className="btn btn-danger-100" type="submit">訂閱</button>
-                </div>
-              </form>
             </div>
       
             {/* <!-- Contact Info Section --> */}

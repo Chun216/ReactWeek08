@@ -96,7 +96,7 @@ function ProductModal({
           }
         })
         dispatch(pushMessage({
-          text: message('新增產品成功'),
+          text: '新增產品成功',
           status: 'success'
         }))
         console.log(res.data.data)
@@ -118,7 +118,7 @@ function ProductModal({
         getProducts();
         handleProductModalClose();
       } catch (error) {
-        alert('編輯產品失敗')
+        alert(error.response?.data?.message || "編輯產品失敗")
       }
     }
 
@@ -142,6 +142,7 @@ function ProductModal({
         }))
         console.log(res.data.data)
       } catch (error) {
+        const { message } = error.response.data;
         dispatch(pushMessage({
           text: message.join('、'),
           status: 'failed'
@@ -165,7 +166,7 @@ function ProductModal({
             imageUrl: uploadedImageUrl
           })
         } catch (error) {
-          
+          alert(error.response?.data?.message || "上傳照片失敗")
         }
     }
 

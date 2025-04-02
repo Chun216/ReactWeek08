@@ -1,5 +1,4 @@
-import { Modal } from "bootstrap";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import axios from 'axios';
 import Pagination from '../components/Pagination';
 import ProductModal from '../components/ProductModal';
@@ -23,7 +22,7 @@ const defaultModalState = {
   imagesUrl: [""],
 };
 
-function ProductCatalog ( {setIsAuth} ) {
+function ProductCatalog () {
   // axios取得資料後，狀態的改變
   const [products, setProducts] = useState([]);
 
@@ -37,7 +36,7 @@ function ProductCatalog ( {setIsAuth} ) {
       setPageInfo(res.data.pagination);
       // console.log(res.data.pagination); 確認分頁資訊
     } catch (error) {
-      throw error
+      alert(error.response?.data?.message || "無法取得產品資訊");
     }
   }
 
@@ -73,8 +72,6 @@ function ProductCatalog ( {setIsAuth} ) {
   }
 
  
-  // 選擇刪除Modal的useRef
-  const delProductModalRef = useRef(null);
   // 點選後跳出Modal畫面，需要確認是編輯還是新增頁面
   const [ modalMode, setModalMode ] = useState(null);
 
@@ -98,21 +95,21 @@ function ProductCatalog ( {setIsAuth} ) {
   const handlePageChange = (page) => {
     getProducts(page);
   }
-  
+
   const navigate = useNavigate();
+  
   // 登出
   const handleLogout = async() => {
     try {
       await axios.post(`${BASE_URL}/v2/logout`);
-      setIsAuth(false);
       // 清除 cookie
       document.cookie = "beeToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       navigate('/adminlogin')
     } catch (error) {
-      alert('登出失敗')
-      console.dir(error.response)
+      alert(error.response?.data?.message || "登出失敗");
     }
   }
+
 
   return(<>
     <div className="container">

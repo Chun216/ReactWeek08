@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Modal } from "bootstrap";
 import { useDispatch } from 'react-redux';
@@ -39,7 +39,7 @@ function DelProductModal({
         const res = await axios.delete(`${BASE_URL}/v2/api/${API_PATH}/admin/product/${tempProduct.id}`)
         console.log(res.data.data)
       } catch (error) {
-        alert('刪除產品失敗')
+        alert(error.response?.data?.message || "刪除資料失敗")
       }
     }
 

@@ -12,6 +12,7 @@ import Checkout from "../pages/Checkout";
 import Cart from "../pages/Cart";
 import ProductCatalog from "../pages/ProductCatalog";
 import AdminLogin from "../pages/AdminLogin";
+import CouponCatalog from "../pages/CouponCatalog";
 
 
 
@@ -63,6 +64,10 @@ const routes = [
       {
         path: 'productcatalog',
         element: <ProductCatalog />
+      },
+      {
+        path: 'couponcatalog',
+        element: <CouponCatalog />
       }
     ]
   },

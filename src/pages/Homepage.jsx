@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Link } from "react-router";
 import 'swiper/css';
+import { set } from "react-hook-form";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 const API_PATH = import.meta.env.VITE_API_PATH;
@@ -25,14 +26,42 @@ function Homepage () {
       try {
         const res = await axios.get(`${BASE_URL}/v2/api/${API_PATH}/products`);
         setPopularBooks(res.data.products.slice(5,10));
-        console.log(res.data.products.slice(5,10));
       } catch (error) {
         alert(error.response?.data?.message || "取得熱門產品失敗")
-        console.log(error);
       }
     };
     getPopularBooks();
   }, []);
+
+  // 優惠碼複製
+  const [copied, setCopied] = useState(false);
+  const couponCode = "READWITHKIDS20";
+
+  const handleCopyCoupon = () => {
+    navigator.clipboard.writeText(couponCode);
+    setCopied(true);
+  };
+  // 2秒後又變成可以複製的狀態
+  useEffect(() => {
+    if(copied) {
+      const timer = setTimeout(() => setCopied(false), 2000)
+      return () => clearTimeout(timer); // 清除計時器
+    }
+  }, [copied])
+
+  // 填寫訂閱電子報的email
+  const [email, setEmail] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!email) {
+      alert("請輸入有效的 Email");
+      return;
+    }
+    console.log("使用者訂閱 Email:", email);
+    alert("感謝訂閱");
+    setEmail("");  // 清空輸入框
+  };
 
   return(<>
   {/*banner carousel*/}
@@ -68,11 +97,13 @@ function Homepage () {
             <h5 className="banner-text fs-lg-2 fs-md-4 fs-5 text-primary-200 bg-primary-100 rounded text-center py-2 px-2">
               繪本那麼多卻選不出來?
             </h5>
-            <div className="d-flex flex-md-row flex-column justify-content-md-center justify-content-start ps-4">
-              <p className="text-primary-300 fs-md-4 fs-6 me-3">交給筆筆書櫃</p>
+            <div className="d-flex flex-md-row flex-column align-items-md-center justify-content-md-center justify-content-start ps-4">
+              <p className="text-primary-300 fs-md-4 fs-6 me-3"
+                style={{fontWeight: 'bold'}}
+              >交給筆筆書櫃</p>
               <Link to='/bookslist/daily'>
                 <button type="button"
-                className="btn rounded border-0 p-2 mt-1 text-primary-300 btn-danger-100"
+                className="btn rounded border-0 p-2 text-primary-300 btn-danger-100"
                 >主題分類</button>
               </Link>
             </div>
@@ -85,7 +116,23 @@ function Homepage () {
           alt="孩子認真看書" />
           <div className="carousel-caption"
           style={{position: 'absolute', top: '15%'}}>
-            <h5 className="banner-text fs-lg-1 fs-md-2 fs-sm-4 fs-5 text-primary-300"><i className="bi bi-stars text-warning pe-1"></i>無聊的時候，看繪本吧！</h5>
+            <h5 className="banner-text fs-lg-1 fs-md-2 fs-sm-4 fs-5 text-primary-300">
+              <i className="bi bi-stars text-warning pe-1"></i>無聊的時候，看繪本吧！
+            </h5>
+            <div className="input-group mt-3 w-auto mx-auto">
+              <input
+                type="text"
+                className="form-control text-center fw-bold bg-light"
+                value={couponCode}
+                readOnly // 防止使用者修改
+              />
+              <button
+                className={`btn ${copied ? "btn-primary-200" : "btn-primary-100"} text-primary-300`}
+                onClick={handleCopyCoupon}
+              >
+                {copied ? "✅ 已複製" : "📋 複製"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -206,13 +253,13 @@ function Homepage () {
   </div>
 
   {/*筆筆書櫃回饋*/}
-  <div className="feedback-section bg-primary-100">
+  <div className="feedback-section bg-primary-100 pb-5">
     <div className="container pt-2 pb-5">
     <h3 className="pb-3 text-center h1 text-primary-200" style={{fontWeight: 'bold'}}>書櫃心得</h3>
     <div className="row g-2">
       <div className="col-md-6">
         <div className="feedbak-card d-flex bg-danger-100 rounded p-2">
-          <div style={{maxWidth: '100px', maxHeight: '100px'}}>
+          <div style={{maxWidth: '100px', maxHeight: '96px'}}>
             <img src="https://images.unsplash.com/photo-1605812830455-2fadc55bc4ba?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
               className="rounded" style={{width: '100%',height: '100%', objectFit: 'cover'}} alt="爸爸揹著孩子" />      
           </div>  
@@ -224,7 +271,7 @@ function Homepage () {
       </div>
       <div className="col-md-6">
         <div className="feedbak-card d-flex bg-danger-100 rounded p-2">
-          <div style={{maxWidth: '100px', maxHeight: '100px'}}>
+          <div style={{maxWidth: '100px', maxHeight: '96px'}}>
             <img src="https://images.unsplash.com/photo-1531983412531-1f49a365ffed?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
               className="rounded" style={{width: '100%',height: '100%', objectFit: 'cover'}} alt="媽媽抱著孩子" />      
           </div>  
@@ -236,7 +283,7 @@ function Homepage () {
       </div>
       <div className="col-md-6">
         <div className="feedbak-card d-flex bg-danger-100 rounded p-2">
-          <div style={{maxWidth: '100px', maxHeight: '100px'}}>
+          <div style={{maxWidth: '100px', maxHeight: '96px'}}>
             <img src="https://plus.unsplash.com/premium_photo-1682000277474-29f210a62174?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
               className="rounded" style={{width: '100%',height: '100%', objectFit: 'cover'}} alt="媽媽抱著孩子" />      
           </div>  
@@ -248,7 +295,7 @@ function Homepage () {
       </div>
       <div className="col-md-6">
         <div className="feedbak-card d-flex bg-danger-100 rounded p-2">
-          <div style={{maxWidth: '100px', maxHeight: '100px'}}>
+          <div style={{maxWidth: '100px', maxHeight: '96px'}}>
             <img src="https://images.unsplash.com/photo-1542385151-efd9000785a0?q=80&w=1978&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
               className="rounded" style={{width: '100%',height: '100%', objectFit: 'cover'}} alt="媽媽抱著孩子" />      
           </div>  
@@ -262,6 +309,34 @@ function Homepage () {
 
     </div>
 
+  </div>
+
+  {/*訂閱電子報*/}
+  <div className="eletter-section" style={
+    {backgroundImage: `url('https://images.unsplash.com/photo-1505063366573-38928ae5567e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
+     objectFit: 'cover',
+     backgroundPosition: 'center',
+     paddingTop: '120px',
+     paddingBottom: '120px',
+    }}>
+    <div className="container text-center">
+      <h2 className="mb-3 text-primary-100" style={{fontWeight: 'bold'}}>訂閱電子報</h2>
+      <p className="text-primary-100">輸入 Email 來獲取最新繪本資訊！</p>
+      <form onSubmit={handleSubmit} className="px-5 d-flex justify-content-center align-items-center">
+        <div className="input-group w-auto">
+          <input
+            type="email"
+            className="form-control"
+            placeholder="輸入 Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <button type="submit" className="btn btn-danger-100 text-light">
+            訂閱
+          </button>
+        </div>
+      </form>
+    </div>   
   </div>
 
   </>)

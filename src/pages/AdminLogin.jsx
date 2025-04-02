@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-function AdminLogin ({setIsAuth}) {
+function AdminLogin () {
     const [account, setAccount] = useState({
       username:'',
       password:''
@@ -24,7 +24,6 @@ function AdminLogin ({setIsAuth}) {
     }
 
     const navigate = useNavigate();
-
     const handleLogin = async(e) => {
       e.preventDefault();
       setIsLoading(true);
@@ -36,7 +35,7 @@ function AdminLogin ({setIsAuth}) {
         // 存取在cookie中
         document.cookie = `beeToken=${token}; expires=${new Date(expired).toUTCString()}`;
         axios.defaults.headers.common['Authorization'] = token;
-        setIsAuth(true)
+        navigate('/admin')
       } catch (error) {
         alert(error.response?.data?.message || "登入失敗")
         console.dir(error);
@@ -61,8 +60,7 @@ function AdminLogin ({setIsAuth}) {
             <button 
             className="btn btn-primary d-flex justify-content-center align-items-center text-light"
             disabled={isLoading}>
-            登入</button>
-            {isLoading && (<RingLoader color="#000" size={15} />)}
+            登入{isLoading && (<RingLoader color="#000" size={15} />)}</button>
           </form>
           <p className="mt-5 mb-3 text-muted">&copy; 2025~∞ - 筆筆書櫃</p>
         </div>

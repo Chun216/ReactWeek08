@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { RingLoader } from 'react-spinners';
 import { useNavigate } from 'react-router';
@@ -36,7 +36,7 @@ function Cart () {
   const removeCart = async() => {
     setIsScreenLoading(true);
     try {
-      const res = await axios.delete(`${BASE_URL}/v2/api/${API_PATH}/carts`);
+      await axios.delete(`${BASE_URL}/v2/api/${API_PATH}/carts`);
       // 清空後要更新購物車列表
       getCartProducts();
     } catch (error) {
@@ -53,7 +53,7 @@ function Cart () {
       [cartItem_id]: true,
     }));
     try {
-      const res = await axios.delete(`${BASE_URL}/v2/api/${API_PATH}/cart/${cartItem_id}`)
+      await axios.delete(`${BASE_URL}/v2/api/${API_PATH}/cart/${cartItem_id}`)
       // 在尚未渲染前可以用這個來確認
       // console.log(res);
       getCartProducts();
@@ -71,7 +71,7 @@ function Cart () {
   const updateCartItem = async (cartItem_id, product_id, qty) => {
     setIsScreenLoading(true);
     try {
-      const res =  await axios.put(`${BASE_URL}/v2/api/${API_PATH}/cart/${cartItem_id}`, {
+      await axios.put(`${BASE_URL}/v2/api/${API_PATH}/cart/${cartItem_id}`, {
         data: {
           product_id,
           qty: Number(qty),
@@ -82,6 +82,27 @@ function Cart () {
       alert(error.response?.data?.message || "調整購物車單一商品數量失敗")
     } finally {
       setIsScreenLoading(false);
+    }
+  }
+
+  // 套用優惠券
+  // const couponCode = "READWITHKIDS20";
+
+  const [couponCode, setCouponCode] = useState(""); // 優惠碼
+  const [coupon, setCoupon] = useState(null); // API 回應的優惠資訊
+
+  const applyCoupon = async() => {
+    try {
+      const res = await axios.post(`${BASE_URL}/v2/api/${API_PATH}/coupon`, {
+        data: {
+          code: couponCode,
+        }
+      })
+      setCoupon(res.data.data.final_total)
+      console.log(res.data.data)
+      setCouponCode('')
+    } catch (error) {
+      alert(error.response?.data?.message || "優惠券使用失敗")
     }
   }
 
@@ -116,9 +137,9 @@ function Cart () {
   const checkout = async(data) => {
     setIsScreenLoading(true);
     try {
-      const res = await axios.post(`${BASE_URL}/v2/api/${API_PATH}/order`, data);
+      await axios.post(`${BASE_URL}/v2/api/${API_PATH}/order`, data);
       reset();
-      // 送出成功後跳轉至結帳頁面
+      // 送出成功後跳轉至結帳成功頁面
       navigate('/checkout');
       // removeCart();
       // getCartProducts(); 
@@ -154,13 +175,12 @@ function Cart () {
                       <th className="text-end text-light">金額</th>
                       <th></th>
                     </tr>
-                  </thead>
-          
+                  </thead>         
                   <tbody>
                     {/*加入可選串聯是因為carts是後續生成的內容為了防止錯誤*/}
                     {
                       cart.carts?.map((cartItem) => {
-                        return (
+                        return (<>
                           <tr key={cartItem.id}>
                             <td className='d-flex justify-content-start align-items-center'>
                               <img src={cartItem.product.imageUrl} alt={cartItem.product.title}
@@ -205,23 +225,36 @@ function Cart () {
                               </button>
                             </td>
                           </tr>
-                        )
+                        </>)
                       })
                     }  
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan="3" className="text-end">
+                      <td colSpan="3" className="text-end fs-4">
                         總計：
                       </td>
-                      <td className="text-end" style={{ width: "130px" }}>{cart.total}</td>
+                      <td className="text-end fs-4" style={{ width: "130px" }}>NT${cart.total}</td>
                     </tr>
+                    {
+                    coupon !== null && (
+                    <tr>
+                      <td colSpan="3" className="text-end fs-4">
+                        折扣後總計：
+                      </td>
+                      <td className='text-end text-danger fs-4'
+                        style={{width: '130px', fontWeight: 'bold'}}>
+                        NT${coupon}
+                      </td>
+                    </tr>)
+                    }  
                   </tfoot>
                 </table>
+                
                 {/*RWD的購物車*/}
                 {
                   cart.carts?.map((cartItem) => {
-                    return(
+                    return(<>
                       <div className='d-sm-none d-flex mt-3' key={cartItem.id}>
                         <div className='d-flex'>
                           <img src={cartItem.product.imageUrl} alt={cartItem.product.title} 
@@ -259,7 +292,7 @@ function Cart () {
                           </div>
                           <div className='d-flex'>
                             <span>金額</span>
-                            <span>{cartItem.total}</span>
+                            <span className='ms-2'>{cartItem.total}</span>
                           </div>                        
                           <button onClick={() => removeCartItem(cartItem.id)} 
                             type="button" 
@@ -267,18 +300,38 @@ function Cart () {
                             <i className="bi bi-trash pe-1"></i>
                             {isDelLoading[cartItem.id] ? (<RingLoader color="#000" size={15} />) : ''} 
                           </button>
-                        </div>
-                        
-                        
+                        </div> 
                       </div>
-                    )
+                    </>)
                   })
-                }
-                
+                }  
               </div>)
             }
+            <div className='d-sm-none d-block mt-3 text-end'>
+              <h4>總計：NT${cart.total}</h4>
+              {
+                coupon !== null && (<h4 className='text-danger' style={{fontWeight: 'bold'}}>折扣後總計：NT${coupon}</h4>)
+              }
+            </div>
+            <div className="my-4">
+              <div className='d-flex align-items-lg-center flex-lg-row flex-column bg-primary-100'>
+                <label className="form-label fw-bold">🎟️ 使用優惠碼</label>
+                <div className="input-group w-auto ps-lg-3 ps-0">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="請輸入優惠碼"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                  />
+                  <button className="btn btn-danger-100 text-light" onClick={applyCoupon}>
+                    套用
+                  </button>
+                </div>
+              </div>
+            </div> 
             <form onSubmit={onSubmit}>
-              <div className="col-12 ps-4 pt-5">
+              <div className="col-12 pt-5">
                 <h3>配送資訊</h3>
                 <div className="mt-4">
                   <label className="d-flex align-items-center">

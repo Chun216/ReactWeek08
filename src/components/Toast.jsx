@@ -25,7 +25,7 @@ function Toast () {
         }, 2000)
       }
     })
-  }, [messages])
+  }, [messages, dispatch])
 
   // 手動關閉跳出訊息
   const handleDismiss = (message_id) => {
